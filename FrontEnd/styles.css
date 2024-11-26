@@ -4,9 +4,3 @@
     background-color: yellow;
     border: 2px solid red;
 }
-
-
-th.row-condition.violation {
-    color: red;
-    font-weight: bold;
-}

@@ -43,9 +43,10 @@
                 let th = document.createElement('th');
                 th.classList.add('col-condition'); // Add col-condition class
                 th.setAttribute('data-index', index); // Add data-index for identification
-                th.textContent = col.join(', '); // Set text content to display the requirement
+
+                // Create individual spans for each segment of the column condition
+                th.innerHTML = col.map(segment => `<span class="condition-segment">${segment}</span>`).join(', ');
                 headerRow.appendChild(th); // Append to the header row
-                console.log(`Column condition created for index ${index}:`, th); // Debugging log
             });
             table.appendChild(headerRow);
 
@@ -57,7 +58,9 @@
                 let rowHeader = document.createElement('th');
                 rowHeader.classList.add('row-condition'); // Add row-condition class
                 rowHeader.setAttribute('data-index', i); // Add data-index for identification
-                rowHeader.textContent = data.row_conditions[i].join(', '); // Display the requirement
+
+                // Create individual spans for each segment of the row condition
+                rowHeader.innerHTML = data.row_conditions[i].map(segment => `<span class="condition-segment">${segment}</span>`).join(', ');
                 rowElement.appendChild(rowHeader);
 
                 // Add cells
@@ -81,41 +84,53 @@
             });
             const data = await response.json();
 
-            // Update the cell's class
+            console.log("Backend response:", data); // Check row_violations and column_violations
+
             const newValue = data.new_value;
             cellElement.className = newValue === true ? 'true' : newValue === false ? 'false' : 'undefined';
 
             // Highlight row and column violations
             highlightViolations(x, 'row', data.row_violations);
-            highlightViolations(y, 'column', data.column_violations);
+            highlightViolations(y, 'col', data.column_violations);
         }
 
         function highlightViolations(index, type, violations) {
             console.log(`Highlighting violations for ${type} at index ${index}:`, violations);
 
-            const conditionElements = document.querySelectorAll(
+            // Select the main condition element (the <th>)
+            const conditionElement = document.querySelector(
                 `.${type}-condition[data-index="${index}"]`
             );
-            console.log(`Condition elements for ${type} at index ${index}:`, conditionElements);
+            console.log(`Condition element for ${type} at index ${index}:`, conditionElement);
 
-            conditionElements.forEach((el, i) => {
-                if (violations[i]) {
-                    el.classList.add('violation'); // Add violation class
-                    console.log(`Violation added to ${type} condition ${i}:`, el);
+            if (!conditionElement) {
+                console.error(`No ${type}-condition element found for index ${index}`);
+                return;
+            }
+
+            // Select individual condition segments (<span>)
+            const segments = conditionElement.querySelectorAll('.condition-segment');
+            console.log(`Segments found for ${type} index ${index}:`, segments);
+            console.log(`Segments length: ${segments.length}, Violations length: ${violations.length}`);
+
+            // Apply or remove the violation class for each segment
+            segments.forEach((el, i) => {
+                if (i < violations.length && violations[i]) {
+                    el.classList.add('violation'); // Highlight the segment with a violation
+                    console.log(`Violation added to ${type} segment ${i}:`, el);
                 } else {
-                    el.classList.remove('violation'); // Remove violation class
-                    console.log(`Violation removed from ${type} condition ${i}:`, el);
+                    el.classList.remove('violation'); // Remove highlight if no violation
+                    console.log(`Violation removed from ${type} segment ${i}:`, el);
                 }
             });
         }
-
 
 
         // Call this function when rendering row and column conditions
         function renderConditions(conditions, type) {
             return conditions.map((condition, index) => `
                 <div class="${type}-condition" data-index="${index}">
-                    ${condition.map(num => `<span>${num}</span>`).join(', ')}
+                    ${condition.map(num => `<span class="condition-segment">${num}</span>`).join(', ')}
                 </div>
             `).join('');
         }

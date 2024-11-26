@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Chessboard</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+        td, th {
+            border: 1px solid black;
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .true { background-color: lightgreen; }
+        .false { background-color: lightcoral; }
+        .undefined { background-color: lightgray; }
+    </style>
+</head>
+<body>
+    <table id="chessboard"></table>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:5000';
+
+        // Fetch chessboard data from the backend
+        async function loadBoard() {
+            const response = await fetch(`${API_BASE_URL}/get_board`);
+            const data = await response.json();
+
+            const table = document.getElementById('chessboard');
+            table.innerHTML = ''; // Clear existing board
+
+            // Add column conditions
+            let headerRow = document.createElement('tr');
+            headerRow.innerHTML = '<th></th>';
+            data.col_conditions.forEach(col => {
+                let th = document.createElement('th');
+                th.textContent = col.join(', ');
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+            // Add rows with row conditions and cells
+            data.board.forEach((row, i) => {
+                let rowElement = document.createElement('tr');
+                let rowHeader = document.createElement('th');
+                rowHeader.textContent = data.row_conditions[i].join(', ');
+                rowElement.appendChild(rowHeader);
+
+                row.forEach((cell, j) => {
+                    let cellElement = document.createElement('td');
+                    cellElement.className = cell === true ? 'true' : cell === false ? 'false' : 'undefined';
+                    cellElement.onclick = () => updateCell(i, j, cellElement);
+                    rowElement.appendChild(cellElement);
+                });
+
+                table.appendChild(rowElement);
+            });
+        }
+
+        // Update a cell in the backend
+        async function updateCell(x, y, cellElement) {
+            const response = await fetch(`${API_BASE_URL}/update_cell`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ x, y })
+            });
+            const data = await response.json();
+
+            // Update the cell's class based on the new value
+            const newValue = data.new_value;
+            cellElement.className = newValue === true ? 'true' : newValue === false ? 'false' : 'undefined';
+        }
+
+        // Load the board on page load
+        window.onload = loadBoard;
+    </script>
+</body>
+</html>

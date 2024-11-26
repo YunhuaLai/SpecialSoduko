@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Chessboard</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
     <style>
         table {
             border-collapse: collapse;
@@ -37,21 +38,29 @@
 
             // Add column conditions
             let headerRow = document.createElement('tr');
-            headerRow.innerHTML = '<th></th>';
-            data.col_conditions.forEach(col => {
+            headerRow.innerHTML = '<th></th>'; // Empty top-left corner for alignment
+            data.col_conditions.forEach((col, index) => {
                 let th = document.createElement('th');
-                th.textContent = col.join(', ');
-                headerRow.appendChild(th);
+                th.classList.add('col-condition'); // Add col-condition class
+                th.setAttribute('data-index', index); // Add data-index for identification
+                th.textContent = col.join(', '); // Set text content to display the requirement
+                headerRow.appendChild(th); // Append to the header row
+                console.log(`Column condition created for index ${index}:`, th); // Debugging log
             });
             table.appendChild(headerRow);
 
             // Add rows with row conditions and cells
             data.board.forEach((row, i) => {
                 let rowElement = document.createElement('tr');
+
+                // Add row condition
                 let rowHeader = document.createElement('th');
-                rowHeader.textContent = data.row_conditions[i].join(', ');
+                rowHeader.classList.add('row-condition'); // Add row-condition class
+                rowHeader.setAttribute('data-index', i); // Add data-index for identification
+                rowHeader.textContent = data.row_conditions[i].join(', '); // Display the requirement
                 rowElement.appendChild(rowHeader);
 
+                // Add cells
                 row.forEach((cell, j) => {
                     let cellElement = document.createElement('td');
                     cellElement.className = cell === true ? 'true' : cell === false ? 'false' : 'undefined';
@@ -63,7 +72,7 @@
             });
         }
 
-        // Update a cell in the backend
+
         async function updateCell(x, y, cellElement) {
             const response = await fetch(`${API_BASE_URL}/update_cell`, {
                 method: 'POST',
@@ -72,9 +81,43 @@
             });
             const data = await response.json();
 
-            // Update the cell's class based on the new value
+            // Update the cell's class
             const newValue = data.new_value;
             cellElement.className = newValue === true ? 'true' : newValue === false ? 'false' : 'undefined';
+
+            // Highlight row and column violations
+            highlightViolations(x, 'row', data.row_violations);
+            highlightViolations(y, 'column', data.column_violations);
+        }
+
+        function highlightViolations(index, type, violations) {
+            console.log(`Highlighting violations for ${type} at index ${index}:`, violations);
+
+            const conditionElements = document.querySelectorAll(
+                `.${type}-condition[data-index="${index}"]`
+            );
+            console.log(`Condition elements for ${type} at index ${index}:`, conditionElements);
+
+            conditionElements.forEach((el, i) => {
+                if (violations[i]) {
+                    el.classList.add('violation'); // Add violation class
+                    console.log(`Violation added to ${type} condition ${i}:`, el);
+                } else {
+                    el.classList.remove('violation'); // Remove violation class
+                    console.log(`Violation removed from ${type} condition ${i}:`, el);
+                }
+            });
+        }
+
+
+
+        // Call this function when rendering row and column conditions
+        function renderConditions(conditions, type) {
+            return conditions.map((condition, index) => `
+                <div class="${type}-condition" data-index="${index}">
+                    ${condition.map(num => `<span>${num}</span>`).join(', ')}
+                </div>
+            `).join('');
         }
 
         // Load the board on page load

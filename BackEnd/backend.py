@@ -1,20 +1,10 @@
 from flask import Flask, jsonify, request, send_from_directory
+from settings import size, board, row_conditions, col_conditions
+from utils import check_conditions
 import os
 
 # Flask app initialization
 app = Flask(__name__, static_folder="../FrontEnd", static_url_path="/static")
-
-# Initialize the chessboard state
-size = 10
-board = [["Undefined" for _ in range(size)] for _ in range(size)]
-
-# Row and column conditions
-row_conditions = [
-    [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [0, 9]
-]
-col_conditions = [
-    [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [0, 9]
-]
 
 @app.route('/get_board', methods=['GET'])
 def get_board():
@@ -41,6 +31,12 @@ def update_cell():
         board[x][y] = "Undefined"
 
     return jsonify({"message": "Cell updated", "new_value": board[x][y]})
+
+@app.route('/check_conditions', methods=['GET'])
+def validate_conditions():
+    # Validate the board against the conditions
+    result, message = check_conditions(board, row_conditions, col_conditions)
+    return jsonify({"valid": result, "message": message})
 
 @app.route('/')
 def serve_index():

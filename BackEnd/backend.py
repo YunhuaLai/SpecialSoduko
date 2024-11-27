@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, send_from_directory
 from settings import size, board, row_conditions, col_conditions
 from utils import validate_line
-from humanSolution import solve_with_common_logic
+from humanSolution import solve_with_common_logic, get_hint_logic
 import os
 
 app = Flask(__name__, static_folder="../FrontEnd", static_url_path="/static")
@@ -55,6 +55,22 @@ def solve_game():
     # Solve the game using the logic implemented earlier
     solved_board = solve_with_common_logic(size, row_conditions, col_conditions)
     return jsonify({"solved_board": solved_board})
+
+@app.route('/get_hint', methods=['POST'])
+def get_hint():
+    """
+    Provide the next logical move as a hint.
+    """
+    data = request.json
+    current_board = data.get("board")
+
+    hint = get_hint_logic(current_board, row_conditions, col_conditions)
+    
+    if "error" not in hint:
+        # Update the board with the hint
+        current_board[hint["x"]][hint["y"]] = hint["value"]
+    return jsonify(hint)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

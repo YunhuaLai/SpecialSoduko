@@ -95,8 +95,36 @@ def solve_with_common_logic(size, row_requirements, col_requirements):
                     if board[i][j] == "Undefined" and common_solution[i] != "Undefined":
                         board[i][j] = common_solution[i]
                         changes = True
+    print("Solved board:")
 
     return board
+
+def get_hint_logic(current_board, row_requirements, col_requirements):
+    """
+    Provide the next logical move as a hint.
+    """
+    size = len(current_board)
+
+    for i in range(size):
+        # Generate possibilities for the row
+        row_possibilities = generate_possibilities(size, row_requirements[i], current_board[i])
+        if len(row_possibilities) > 1:
+            common_row = find_common_solution(row_possibilities)
+            for j in range(size):
+                if current_board[i][j] == "Undefined" and common_row[j] != "Undefined":
+                    return {"x": i, "y": j, "value": common_row[j]}
+
+        # Generate possibilities for the column
+        column = [current_board[x][i] for x in range(size)]
+        col_possibilities = generate_possibilities(size, col_requirements[i], column)
+        if len(col_possibilities) > 1:
+            common_col = find_common_solution(col_possibilities)
+            for j in range(size):
+                if current_board[j][i] == "Undefined" and common_col[j] != "Undefined":
+                    return {"x": j, "y": i, "value": common_col[j]}
+
+    # If no hints are available, return an error
+    return {"error": "No more hints available"}
 
 
 if __name__ == '__main__':

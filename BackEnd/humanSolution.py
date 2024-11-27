@@ -3,6 +3,9 @@ def generate_possibilities(size, requirement, current_line):
     Generate all valid possibilities for a row/column given its size, requirement, and current state.
     """
     def helper(remaining_req, remaining_space):
+        """
+        Recursively generate valid possibilities for the remaining requirements.
+        """
         if not remaining_req:  # No more segments to place
             return [[False] * remaining_space]
 
@@ -12,7 +15,7 @@ def generate_possibilities(size, requirement, current_line):
         for start in range(remaining_space - len(first_segment) + 1):
             # Place the current segment
             current = [False] * start + first_segment
-            # Add at least one False after this segment (if more segments remain)
+            # Add at least one False after this segment if more segments remain
             if len(remaining_req) > 1:
                 current += [False]
             # Recurse for the remaining segments
@@ -22,33 +25,33 @@ def generate_possibilities(size, requirement, current_line):
 
         return results
 
-    # Start the recursive generation
+    # Generate all possibilities
     all_possibilities = helper(requirement, size)
 
-    # Filter out solutions that conflict with the current line
-    valid_possibilities = []
-    for possibility in all_possibilities:
-        conflict = False
-        for i in range(size):
-            if current_line[i] != "Undefined" and current_line[i] != possibility[i]:
-                conflict = True
-                break
-        if not conflict:
-            valid_possibilities.append(possibility)
+    # Filter out possibilities that conflict with the current line
+    valid_possibilities = [
+        possibility for possibility in all_possibilities
+        if all(current_line[i] == "Undefined" or current_line[i] == possibility[i]
+               for i in range(size))
+    ]
 
     return valid_possibilities
-
 
 
 def find_common_solution(possibilities):
     """
     Find the common cells (True or False) in all possibilities.
     """
-    common = possibilities[0][:]  # Start with the first possibility
+    if not possibilities:
+        return []
+
+    # Start with the first possibility and compare with others
+    common = possibilities[0][:]
     for possibility in possibilities[1:]:
         for i in range(len(common)):
             if common[i] != possibility[i]:
                 common[i] = "Undefined"
+
     return common
 
 
@@ -95,9 +98,9 @@ def solve_with_common_logic(size, row_requirements, col_requirements):
                     if board[i][j] == "Undefined" and common_solution[i] != "Undefined":
                         board[i][j] = common_solution[i]
                         changes = True
-    print("Solved board:")
 
     return board
+
 
 def get_hint_logic(current_board, row_requirements, col_requirements):
     """
@@ -106,18 +109,18 @@ def get_hint_logic(current_board, row_requirements, col_requirements):
     size = len(current_board)
 
     for i in range(size):
-        # Generate possibilities for the row
+        # Check rows for hints
         row_possibilities = generate_possibilities(size, row_requirements[i], current_board[i])
-        if len(row_possibilities) > 1:
+        if row_possibilities:
             common_row = find_common_solution(row_possibilities)
             for j in range(size):
                 if current_board[i][j] == "Undefined" and common_row[j] != "Undefined":
                     return {"x": i, "y": j, "value": common_row[j]}
 
-        # Generate possibilities for the column
+        # Check columns for hints
         column = [current_board[x][i] for x in range(size)]
         col_possibilities = generate_possibilities(size, col_requirements[i], column)
-        if len(col_possibilities) > 1:
+        if col_possibilities:
             common_col = find_common_solution(col_possibilities)
             for j in range(size):
                 if current_board[j][i] == "Undefined" and common_col[j] != "Undefined":
@@ -125,18 +128,3 @@ def get_hint_logic(current_board, row_requirements, col_requirements):
 
     # If no hints are available, return an error
     return {"error": "No more hints available"}
-
-
-if __name__ == '__main__':
-    size = 10
-    row_conditions = [
-        [2, 2], [4, 4], [3, 4], [2, 2, 2, 1], [2, 4], [9], [10], [10], [9], [2, 2]
-    ]
-    col_conditions = [
-        [3, 2], [4, 4], [3, 6], [1 ,7], [1, 4], [2, 5], [9], [10], [2, 6], [1, 4]
-    ]
-
-    solution = solve_with_common_logic(size, row_conditions, col_conditions)
-    for row in solution:
-        print(row)
-

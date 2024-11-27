@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, send_from_directory
 from settings import size, board, row_conditions, col_conditions
 from utils import validate_line
+from humanSolution import solve_with_common_logic
 import os
 
 app = Flask(__name__, static_folder="../FrontEnd", static_url_path="/static")
@@ -45,6 +46,15 @@ def serve_index():
 @app.route('/<path:path>')
 def serve_static_files(path):
     return send_from_directory(app.static_folder, path)
+
+@app.route('/solve_game', methods=['POST'])
+def solve_game():
+    """
+    Solve the puzzle and return the solved board.
+    """
+    # Solve the game using the logic implemented earlier
+    solved_board = solve_with_common_logic(size, row_conditions, col_conditions)
+    return jsonify({"solved_board": solved_board})
 
 if __name__ == '__main__':
     app.run(debug=True)

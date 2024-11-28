@@ -75,3 +75,76 @@ document.getElementById("hintButton").addEventListener("click", async () => {
         cellElement.className = value === true ? "true" : value === false ? "false" : "undefined";
     }
 });
+
+document.getElementById("resetButton").addEventListener("click", async () => {
+    const response = await fetch(`${API_BASE_URL}/reset_board`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await response.json();
+    console.log(data.message); // Log the reset message
+
+    const newBoard = data.board;
+    const table = document.getElementById("chessboard");
+
+    // Reset the board in the UI
+    newBoard.forEach((row, i) => {
+        row.forEach((cell, j) => {
+            const cellElement = table.rows[i + 1]?.cells[j + 1]; // Skip header row/column
+            if (cellElement) {
+                cellElement.className = "undefined"; // Reset all cells to undefined
+            }
+        });
+    });
+
+    alert("The board has been reset!");
+});
+
+
+
+document.getElementById("checkButton").addEventListener("click", async () => {
+    const table = document.getElementById("chessboard");
+    const currentBoard = [];
+
+    // Capture the current board state
+    for (let i = 1; i < table.rows.length; i++) { // Skip header row
+        const row = [];
+        for (let j = 1; j < table.rows[i].cells.length; j++) { // Skip header column
+            const cell = table.rows[i].cells[j];
+            if (cell.classList.contains("true")) {
+                row.push(true);
+            } else if (cell.classList.contains("false")) {
+                row.push(false);
+            } else {
+                row.push("Undefined");
+            }
+        }
+        currentBoard.push(row);
+    }
+
+    // Send the board state to the backend for validation
+    const response = await fetch(`${API_BASE_URL}/check_board`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            board: currentBoard
+        }),
+    });
+
+    const data = await response.json();
+    const incorrectCells = data.incorrect_cells;
+
+    // Mark incorrect cells
+    for (let i = 1; i < table.rows.length; i++) {
+        for (let j = 1; j < table.rows[i].cells.length; j++) {
+            table.rows[i].cells[j].classList.remove("incorrect"); // Clear previous highlights
+        }
+    }
+    incorrectCells.forEach(({ x, y }) => {
+        const cellElement = table.rows[x + 1]?.cells[y + 1]; // Skip header row/column
+        if (cellElement) {
+            cellElement.classList.add("incorrect");
+        }
+    });
+});

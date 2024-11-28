@@ -128,3 +128,33 @@ def get_hint_logic(current_board, row_requirements, col_requirements):
 
     # If no hints are available, return an error
     return {"error": "No more hints available"}
+
+
+def check_board_logic(current_board, row_requirements, col_requirements):
+    """
+    Check the current board state for incorrect cells.
+
+    Args:
+    - current_board: The current state of the board (2D list).
+    - row_requirements: The row requirements for the puzzle.
+    - col_requirements: The column requirements for the puzzle.
+
+    Returns:
+    - A list of incorrect cell positions (e.g., [{"x": 0, "y": 1}, ...]).
+    """
+    size = len(current_board)
+    incorrect_cells = []
+
+    # Generate the final solution
+    final_solution = solve_with_common_logic(len(current_board), row_requirements, col_requirements)
+
+    incorrect_cells = []
+    for i in range(len(current_board)):
+        for j in range(len(current_board[i])):
+            if current_board[i][j] != "Undefined" and current_board[i][j] != final_solution[i][j]:
+                incorrect_cells.append({"x": i, "y": j})
+
+    # Check if the board matches the solution
+    is_correct = len(incorrect_cells) == 0
+
+    return incorrect_cells

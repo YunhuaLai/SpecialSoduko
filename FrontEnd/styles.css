@@ -4,3 +4,8 @@
     background-color: yellow;
     border: 2px solid red;
 }
+
+.incorrect {
+    background-color: yellow !important;
+    border: 2px solid red;
+}

@@ -2,7 +2,7 @@
 
 const API_BASE_URL = 'http://127.0.0.1:5000';
 
-async function loadBoard() {
+async function loadBoard(empty = false) {
     const response = await fetch(`${API_BASE_URL}/get_board`);
     const data = await response.json();
 
@@ -39,12 +39,16 @@ async function loadBoard() {
         // Add cells
         row.forEach((cell, j) => {
             let cellElement = document.createElement('td');
-            cellElement.className = cell === true ? 'true' : cell === false ? 'false' : 'undefined';
+            if (!empty) {
+                cellElement.className = cell === true ? 'true' : cell === false ? 'false' : 'undefined';
+            } else {
+                cellElement.className = 'undefined'; // Reset all cells to undefined if empty is true
+            }
             cellElement.onclick = () => updateCell(i, j, cellElement);
             rowElement.appendChild(cellElement);
         });
 
-        table.appendChild(rowElement);
+        table.appendChild(rowElement); // Append the row to the table after all cells are added
     });
 }
 

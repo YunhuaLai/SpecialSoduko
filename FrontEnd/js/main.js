@@ -148,3 +148,31 @@ document.getElementById("checkButton").addEventListener("click", async () => {
         }
     });
 });
+
+document.getElementById("newGameButton").addEventListener("click", async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/generate_game_alternative`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch new game: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const { board, row_conditions, col_conditions } = data; // Match backend response keys
+
+        console.log("Row conditions:", row_conditions);
+        console.log("Column conditions:", col_conditions);
+
+        // Update global game state
+        window.gameState = {
+            board,
+            row_conditions,
+            col_conditions
+        };
+
+        // Reload the board with new data
+        loadBoard(true); // Pass true to clear the board
+    } catch (error) {
+        console.error("Error fetching new game:", error);
+        alert("Failed to load a new game. Please try again.");
+    }
+});

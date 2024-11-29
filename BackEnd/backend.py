@@ -4,6 +4,7 @@ from utils import validate_line
 import humanSolution as hs
 from newGame import generate_game_alternative
 from gameState import GameState
+import complexity as cp
 import os
 
 # Initialize Flask app
@@ -101,12 +102,23 @@ def generate_game_alternative_endpoint():
     Generate a new game using the alternative method.
     """
     game_state.generate_new_game()
-    print(game_state.row_conditions, game_state.col_conditions)
     return jsonify({
         "board": game_state.board,
         "row_conditions": game_state.row_conditions,
         "col_conditions": game_state.col_conditions
     })
+
+@app.route('/complexity', methods=['POST'])
+def evaluate_complexity():
+    """
+    Evaluate the complexity of a given board.
+    """
+    board = game_state.board
+    row_conditions = game_state.row_conditions
+    col_conditions = game_state.col_conditions
+    complexity = cp.evaluate_complexity(board, row_conditions, col_conditions)
+    
+    return jsonify({"complexity": complexity})
 
 if __name__ == '__main__':
     app.run(debug=True)

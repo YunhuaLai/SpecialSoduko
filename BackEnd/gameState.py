@@ -7,6 +7,7 @@ class GameState:
         """
         self.size = size
         self.board = [["Undefined" for _ in range(size)] for _ in range(size)]
+        self.solution = [["Undefined" for _ in range(size)] for _ in range(size)]
         self.row_conditions = [[0] for _ in range(size)]  # Initial row requirements set to [0]
         self.col_conditions = [[0] for _ in range(size)]  # Initial column requirements set to [0]
 
@@ -14,15 +15,14 @@ class GameState:
         """
         Generate a new game using the alternative method.
         """
-        self.board, self.row_conditions, self.col_conditions = generate_game_alternative(self.size)
+        self.reset_board()
+        self.solution, self.row_conditions, self.col_conditions = generate_game_alternative(self.size)
 
     def reset_board(self):
         """
         Reset the board to its initial state.
         """
         self.board = [["Undefined" for _ in range(self.size)] for _ in range(self.size)]
-        #self.row_conditions = [[0] for _ in range(self.size)]  # Reset row requirements to [0]
-        #self.col_conditions = [[0] for _ in range(self.size)]  # Reset column requirements to [0]
 
     def update_cell(self, x, y):
         """

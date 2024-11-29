@@ -64,7 +64,7 @@ def generate_game_alternative(size):
 
         # Solve the board
         solved_board = hs.solve_with_common_logic(size, row_requirements, col_requirements)
-        print(row_requirements, col_requirements)
+
         # Check if the solved board matches the original random board
         if solved_board == random_board:
-            return random_board, row_requirements, col_requirements
+            return solved_board, row_requirements, col_requirements

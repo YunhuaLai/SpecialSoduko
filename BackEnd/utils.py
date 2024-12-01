@@ -68,5 +68,4 @@ def validate_line(line, requirement):
         if segments[i] > requirement[i]:  # Segment exceeds requirement
             violated[i] = True
 
-    print(f"Line: {line}, Requirement: {requirement}, Segments: {segments}, Violated: {violated}")
     return violated

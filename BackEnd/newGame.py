@@ -1,5 +1,6 @@
 import random
 import humanSolution as hs
+import gameState
 
 def derive_requirements(board):
     """
@@ -59,11 +60,15 @@ def generate_game_alternative(size):
         # Generate a random board
         random_board = generate_random_board(size)
 
+        game_state = gameState.GameState(size)
+
         # Derive row and column requirements
         row_requirements, col_requirements = derive_requirements(random_board)
+        game_state.row_conditions = row_requirements
+        game_state.col_conditions = col_requirements
 
         # Solve the board
-        solved_board = hs.solve_with_common_logic(size, row_requirements, col_requirements)
+        solved_board = hs.solve_with_common_logic(game_state)
 
         # Check if the solved board matches the original random board
         if solved_board == random_board:

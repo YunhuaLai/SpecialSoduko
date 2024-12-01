@@ -1,7 +1,8 @@
 import humanSolution as hs
+import gameState
 
 
-def evaluate_complexity(board, row_requirements, col_requirements):
+def evaluate_complexity(game_state: gameState.GameState):
     """
     Evaluate the complexity of solving the board.
 
@@ -13,7 +14,10 @@ def evaluate_complexity(board, row_requirements, col_requirements):
     Returns:
     - Total complexity mark.
     """
-    size = len(board)
+    size = game_state.size
+    row_requirements = game_state.row_conditions
+    col_requirements = game_state.col_conditions
+    board = game_state.board
     total_complexity = 0
 
     while True:

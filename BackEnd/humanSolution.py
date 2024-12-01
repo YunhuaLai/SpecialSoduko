@@ -1,3 +1,6 @@
+import gameState
+
+
 def generate_possibilities(size, requirement, current_line):
     """
     Generate all valid possibilities for a row/column given its size, requirement, and current state.
@@ -55,10 +58,14 @@ def find_common_solution(possibilities):
     return common
 
 
-def solve_with_common_logic(size, row_requirements, col_requirements):
+def solve_with_common_logic(game_state: gameState.GameState):
     """
     Solve the puzzle using the logic of unique solutions and common cells.
     """
+    size = game_state.size
+    row_requirements = game_state.row_conditions
+    col_requirements = game_state.col_conditions
+
     board = [["Undefined" for _ in range(size)] for _ in range(size)]
     changes = True
 
@@ -102,11 +109,14 @@ def solve_with_common_logic(size, row_requirements, col_requirements):
     return board
 
 
-def get_hint_logic(current_board, row_requirements, col_requirements):
+def get_hint_logic(game_state: gameState.GameState):
     """
     Provide the next logical move as a hint.
     """
-    size = len(current_board)
+    current_board = game_state.board
+    row_requirements = game_state.row_conditions
+    col_requirements = game_state.col_conditions
+    size = game_state.size
 
     for i in range(size):
         # Check rows for hints
@@ -130,7 +140,7 @@ def get_hint_logic(current_board, row_requirements, col_requirements):
     return {"error": "No more hints available"}
 
 
-def check_board_logic(current_board, row_requirements, col_requirements):
+def check_board_logic(game_state: gameState.GameState):
     """
     Check the current board state for incorrect cells.
 
@@ -142,11 +152,11 @@ def check_board_logic(current_board, row_requirements, col_requirements):
     Returns:
     - A list of incorrect cell positions (e.g., [{"x": 0, "y": 1}, ...]).
     """
-    size = len(current_board)
+    current_board = game_state.board
     incorrect_cells = []
 
     # Generate the final solution
-    final_solution = solve_with_common_logic(len(current_board), row_requirements, col_requirements)
+    final_solution = solve_with_common_logic(game_state)
 
     incorrect_cells = []
     for i in range(len(current_board)):

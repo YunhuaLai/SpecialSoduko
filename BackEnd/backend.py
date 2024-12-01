@@ -65,7 +65,7 @@ def solve_game():
     """
     Solve the puzzle and return the solved board.
     """
-    solved_board = hs.solve_with_common_logic(game_state.size, game_state.row_conditions, game_state.col_conditions)
+    solved_board = hs.solve_with_common_logic(game_state)
     return jsonify({"solved_board": solved_board})
 
 @app.route('/get_hint', methods=['POST'])
@@ -73,9 +73,14 @@ def get_hint():
     """
     Provide the next logical move as a hint.
     """
-    data = request.json
-    current_board = data.get("board")
-    hint = hs.get_hint_logic(current_board, game_state.row_conditions, game_state.col_conditions)
+    hint = hs.get_hint_logic(game_state)
+
+    # Check if a valid hint is returned
+    if "error" in hint:
+        return jsonify({"error": hint["error"]})
+
+    # Update the board with the hint
+    game_state.update_cell(hint["x"], hint["y"], hint["value"])
     return jsonify(hint)
 
 @app.route('/check_board', methods=['POST'])
@@ -83,9 +88,7 @@ def check_board():
     """
     Check the current board state for incorrect cells.
     """
-    data = request.json
-    current_board = data.get("board")
-    incorrect_cells = hs.check_board_logic(current_board, game_state.row_conditions, game_state.col_conditions)
+    incorrect_cells = hs.check_board_logic(game_state)
     return jsonify({"incorrect_cells": incorrect_cells})
 
 @app.route('/reset_board', methods=['POST'])
@@ -113,10 +116,7 @@ def evaluate_complexity():
     """
     Evaluate the complexity of a given board.
     """
-    board = game_state.board
-    row_conditions = game_state.row_conditions
-    col_conditions = game_state.col_conditions
-    complexity = cp.evaluate_complexity(board, row_conditions, col_conditions)
+    complexity = cp.evaluate_complexity(game_state)
     
     return jsonify({"complexity": complexity})
 

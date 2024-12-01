@@ -24,10 +24,14 @@ class GameState:
         """
         self.board = [["Undefined" for _ in range(self.size)] for _ in range(self.size)]
 
-    def update_cell(self, x, y):
+    def update_cell(self, x, y , value = None):
         """
         Update the value of a specific cell and cycle through its states.
         """
+        if value is not None:
+            self.board[x][y] = value
+            return self.board[x][y]
+        
         current_value = self.board[x][y]
         if current_value == "Undefined":
             self.board[x][y] = True

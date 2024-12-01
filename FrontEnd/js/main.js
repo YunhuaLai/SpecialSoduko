@@ -34,45 +34,34 @@ function updateBoard(solvedBoard) {
 
 
 document.getElementById("hintButton").addEventListener("click", async () => {
-    // Get the current board state
     console.log("Hint button clicked");
-    const table = document.getElementById("chessboard");
-    const currentBoard = [];
-    for (let i = 1; i < table.rows.length; i++) { // Skip header row
-        const row = [];
-        for (let j = 1; j < table.rows[i].cells.length; j++) { // Skip header column
-            const cell = table.rows[i].cells[j];
-            if (cell.classList.contains("true")) {
-                row.push(true);
-            } else if (cell.classList.contains("false")) {
-                row.push(false);
-            } else {
-                row.push("Undefined");
-            }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/get_hint`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
         }
-        currentBoard.push(row);
-    }
 
-    // Send the board state to the backend for a hint
-    const response = await fetch(`${API_BASE_URL}/get_hint`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            board: currentBoard,
-        }),
-    });
+        const data = await response.json();
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
 
-    const data = await response.json();
-    if (data.error) {
-        alert(data.error);
-        return;
-    }
-
-    // Update the board with the hint
-    const { x, y, value } = data;
-    const cellElement = table.rows[x + 1]?.cells[y + 1]; // Skip header row/column
-    if (cellElement) {
-        cellElement.className = value === true ? "true" : value === false ? "false" : "undefined";
+        // Update the board with the hint
+        const { x, y, value } = data;
+        const table = document.getElementById("chessboard"); // Ensure table is defined
+        const cellElement = table.rows[x + 1]?.cells[y + 1]; // Skip header row/column
+        if (cellElement) {
+            cellElement.className = value === true ? "true" : value === false ? "false" : "undefined";
+        }
+    } catch (error) {
+        console.error("Failed to get a hint:", error);
+        alert("Failed to get a hint. Please try again.");
     }
 });
 
@@ -104,50 +93,42 @@ document.getElementById("resetButton").addEventListener("click", async () => {
 
 
 document.getElementById("checkButton").addEventListener("click", async () => {
-    const table = document.getElementById("chessboard");
-    const currentBoard = [];
+    console.log("Check button clicked");
+    const table = document.getElementById("chessboard"); // Ensure table reference
 
-    // Capture the current board state
-    for (let i = 1; i < table.rows.length; i++) { // Skip header row
-        const row = [];
-        for (let j = 1; j < table.rows[i].cells.length; j++) { // Skip header column
-            const cell = table.rows[i].cells[j];
-            if (cell.classList.contains("true")) {
-                row.push(true);
-            } else if (cell.classList.contains("false")) {
-                row.push(false);
-            } else {
-                row.push("Undefined");
+    try {
+        const response = await fetch(`${API_BASE_URL}/check_board`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const incorrectCells = data.incorrect_cells;
+
+        // Clear previous incorrect highlights
+        for (let i = 1; i < table.rows.length; i++) {
+            for (let j = 1; j < table.rows[i].cells.length; j++) {
+                table.rows[i].cells[j].classList.remove("incorrect");
             }
         }
-        currentBoard.push(row);
+
+        // Highlight incorrect cells
+        incorrectCells.forEach(({ x, y }) => {
+            const cellElement = table.rows[x + 1]?.cells[y + 1]; // Skip header row/column
+            if (cellElement) {
+                cellElement.classList.add("incorrect");
+            }
+        });
+    } catch (error) {
+        console.error("Failed to check the board:", error);
+        alert("Failed to check the board. Please try again.");
     }
-
-    // Send the board state to the backend for validation
-    const response = await fetch(`${API_BASE_URL}/check_board`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            board: currentBoard
-        }),
-    });
-
-    const data = await response.json();
-    const incorrectCells = data.incorrect_cells;
-
-    // Mark incorrect cells
-    for (let i = 1; i < table.rows.length; i++) {
-        for (let j = 1; j < table.rows[i].cells.length; j++) {
-            table.rows[i].cells[j].classList.remove("incorrect"); // Clear previous highlights
-        }
-    }
-    incorrectCells.forEach(({ x, y }) => {
-        const cellElement = table.rows[x + 1]?.cells[y + 1]; // Skip header row/column
-        if (cellElement) {
-            cellElement.classList.add("incorrect");
-        }
-    });
 });
+
 
 document.getElementById("newGameButton").addEventListener("click", async () => {
     try {
@@ -158,9 +139,6 @@ document.getElementById("newGameButton").addEventListener("click", async () => {
 
         const data = await response.json();
         const { board, row_conditions, col_conditions } = data; // Match backend response keys
-
-        console.log("Row conditions:", row_conditions);
-        console.log("Column conditions:", col_conditions);
 
         // Update global game state
         window.gameState = {
@@ -176,3 +154,36 @@ document.getElementById("newGameButton").addEventListener("click", async () => {
         alert("Failed to load a new game. Please try again.");
     }
 });
+
+
+document.getElementById("evalComplexityButton").addEventListener("click", async () => {
+    // Ensure the board and conditions are fetched from the global state
+    const board = window.gameState.board;
+    const row_conditions = window.gameState.row_conditions;
+    const col_conditions = window.gameState.col_conditions;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/complexity`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                board,
+                row_conditions,
+                col_conditions,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const complexity = data.complexity;
+
+        alert(`The complexity of the current board is: ${complexity}`);
+    } catch (error) {
+        console.error("Failed to evaluate complexity:", error);
+        alert("Failed to evaluate the complexity. Please try again.");
+    }
+});
+

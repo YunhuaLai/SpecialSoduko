@@ -4,7 +4,6 @@ from utils import validate_line
 import humanSolution as hs
 from newGame import generate_game_alternative
 from gameState import GameState
-import complexity as cp
 import os
 
 # Initialize Flask app
@@ -116,7 +115,7 @@ def evaluate_complexity():
     """
     Evaluate the complexity of a given board.
     """
-    complexity = cp.evaluate_complexity(game_state)
+    complexity = game_state.evaluate_complexity()
     
     return jsonify({"complexity": complexity})
 

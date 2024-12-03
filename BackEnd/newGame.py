@@ -24,11 +24,13 @@ def derive_requirements(board):
                 count = 0
         if count > 0:
             segments.append(count)
-        return segments
+        return segments if segments else [0]  # Return [0] if no segments are found
 
     row_requirements = [extract_segments(row) for row in board]
-    col_requirements = [extract_segments([board[i][j] for i in range(len(board))])
-                        for j in range(len(board[0]))]
+    col_requirements = [
+        extract_segments([board[i][j] for i in range(len(board))])
+        for j in range(len(board[0]))
+    ]
 
     return row_requirements, col_requirements
 
